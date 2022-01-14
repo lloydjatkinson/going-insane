@@ -1,0 +1,74 @@
+---
+export interface Props {
+    title: string;
+    description: string;
+    image?: string;
+    publishDate?: Date;
+    modifiedDate?: Date;
+    categories?: []
+    openGraphType?: 'website' | 'article';
+};
+const {
+    title,
+    description,
+    image = 'https://i.imgur.com/ZXzEafL.jpg',
+    publishDate,
+    modifiedDate,
+    categories,
+    openGraphType = 'website',
+} = Astro.props;
+
+const me = 'Author Name';
+const permalink = Astro.request.canonicalURL;
+---
+
+<!-- Global Metadata -->
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="canonical" href={permalink || Astro.request.canonicalURL.href} />
+<link rel="icon" type="image/x-icon" href="/favicon.ico" />
+<link rel="stylesheet" type="text/css" href={Astro.resolve("../styles/fonts.css")}>
+<link rel="stylesheet" type="text/css" href={Astro.resolve("../styles/global.css")}>
+<link rel="sitemap" href="/sitemap.xml"/>
+
+<!-- Primary Meta Tags -->
+<title>{title} - {me}</title>
+<meta name="title" content={title} />
+<meta name="description" content={description} />
+<meta name="author" content={me} />
+
+<!-- Open Graph / Facebook -->
+<meta property="og:url" content={permalink} />
+<meta property="og:title" content={title} />
+<meta property="og:site_name" content={me} />
+<meta property="og:description" content={description} />
+<meta property="og:type" content="{openGraphType}" />
+<meta property="og:image" content={image} />
+<meta property="og:type" content={openGraphType}>
+{
+    openGraphType === 'article' &&
+    <meta property="article:author" content={me}>
+
+}
+{
+    publishDate &&
+    <meta property="article:published_time" content={publishDate}>
+}
+{
+    publishDate &&
+    <meta property="article:modified_time" content={modifiedDate}>
+}
+{categories?.map(category => <meta property="article:tag" content={category} />)}
+
+<!-- Twitter -->
+<meta property="twitter:url" content={permalink} />
+<meta property="twitter:title" content={title} />
+<meta property="twitter:description" content={description} />
+<meta property="twitter:creator" content="@lloydjatkinson" />
+<meta property="twitter:card" content="summary_large_image" />
+<meta property="twitter:image" content={image} />
+
+<!-- Fonts -->
+<!-- <link rel="preconnect" href="https://fonts.gstatic.com" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono&family=IBM+Plex+Sans:wght@400;700&display=swap"> -->

@@ -1,0 +1,83 @@
+---
+import Debug from 'astro/debug';
+import { format } from 'date-fns';
+
+import apaStyleCasing from '../utilities/typography/apa-style-casing';
+
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+interface MarkdownFrontmatter {
+    title: string;
+    description: string;
+    publishDate: Date;
+    image: string;
+    imageDescription: string;
+    categories: string[];
+    draft: boolean;
+};
+
+let allArticles = Astro.fetchContent<MarkdownFrontmatter>('./posts/*.md');
+
+let allArticlesWithDateObject = allArticles.map(article => {
+    return {
+        ...article,
+        title: apaStyleCasing(article.title),
+        publishDate: new Date(article.publishDate)
+    };
+});
+
+const groupArticlesByYearSorted = (articles: MarkdownFrontmatter[]) => {
+    const years = articles.reduce((years, article) => {
+        const year = article.publishDate.getFullYear();
+        if (!years[year]) {
+            years[year] = [];
+        }
+        years[year].push(article);
+        return years;
+    }, {});
+    return Object.keys(years).map(year => {
+        return {
+            year: year,
+            articles: years[year].sort((a, b) => b.publishDate.valueOf() - a.publishDate.valueOf())
+        };
+    }).sort((a, b) => new Date(b.year).getFullYear() - new Date(a.year).getFullYear());
+};
+
+const groupedArticlesSortedByYear = groupArticlesByYearSorted(allArticlesWithDateObject);
+---
+<BaseLayout
+    title="Articles"
+    description="Articles"
+    openGraphType="website">
+        <h1 class="mb-8 text-center text-[30px] leading-[45px] font-bold">
+            Articles
+        </h1>
+        <div class="space-y-6">
+            <ul role="list" class="space-y-8">
+                {
+                    groupedArticlesSortedByYear.map((group) => (
+                        <li class="py-4">
+                            <h2 class="pb-4 text-xl font-bold border-b border-gray-200">
+                                { group.year }
+                            </h2>
+                            <ul role="list" class="divide-y divide-gray-200 ">
+                                {
+                                    group.articles.map((article) => (
+                                        <li class="py-3">
+                                            <div class="flex flex-col justify-between space-y-3 md:space-y-0 md:flex-row">
+                                                <a href={ article.url }>
+                                                    <h3 class="mr-0 sm:mr-4 hover:underline">{ article.title }</h3>
+                                                </a>
+                                                <span class="text-sm text-gray-500 whitespace-nowrap">{ format(article.publishDate, 'PPP') }</span>
+                                            </div>
+                                        </li>
+                                    ))
+                                }
+
+                            </ul>
+                        </li>
+                    ))
+                }
+            </ul>
+        </div>
+</BaseLayout>
